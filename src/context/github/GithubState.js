@@ -8,11 +8,8 @@ import {
 	GET_USER,
 	CLEAR_USERS,
 	GET_REPOS,
-	SET_LOADING,
-	SET_ALERT,
-	REMOVE_ALERT
+	SET_LOADING
 } from '../types';
-import githubContext from './githubContext';
 
 function GithubState(props) {
 	const initialState = {
@@ -24,10 +21,48 @@ function GithubState(props) {
 	const [ state, dispatch ] = useReducer(GithubReducer, initialState);
 
 	// Search Users
+	const searchUsers = async (username) => {
+		setLoading();
+		const res = await axios.get(
+			`https://api.github.com/search/users?q=${username}&client_id=${process
+				.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=${process.env
+				.REACT_APP_GITHUB_CLIENT_SECRET}`
+		);
+		dispatch({
+			type: SEARCH_USERS,
+			payload: res.data.items
+		});
+	};
 	// Get User
+	const getUser = async (username) => {
+		setLoading();
+		const res = await axios.get(
+			`https://api.github.com/users/${username}?client_id=${process.env
+				.REACT_APP_GITHUB_CLIENT_ID}&client_secret=${process.env
+				.REACT_APP_GITHUB_CLIENT_SECRET}`
+		);
+		dispatch({
+			type: GET_USER,
+			payload: res.data
+		});
+	};
 	// Get Repos
+	const getUserRepo = async (username) => {
+		setLoading();
+		const res = await axios.get(
+			`https://api.github.com/users/${username}/repos?per_page=5&sort=created:asc&client_id=${process
+				.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=${process.env
+				.REACT_APP_GITHUB_CLIENT_SECRET}`
+		);
+		dispatch({
+			type: GET_REPOS,
+			payload: res.data
+		});
+	};
 	// Clear Users
+	const clearUsers = () => dispatch({ type: CLEAR_USERS });
 	// Set Loading
+	const setLoading = () => dispatch({ type: SET_LOADING });
 
 	return (
 		<GithubContext.Provider
@@ -35,7 +70,11 @@ function GithubState(props) {
 				users: state.users,
 				user: state.user,
 				repos: state.repos,
-				loading: state.loading
+				loading: state.loading,
+				searchUsers,
+				clearUsers,
+				getUser,
+				getUserRepo
 			}}
 		>
 			{props.children}
